@@ -23,17 +23,28 @@ class TestBuildSystemPrompt:
         assert "features" in prompt
         assert "footer" in prompt
 
-    def test_contains_wordpress_context(self):
+    def test_contains_archetypes(self):
         prompt = build_system_prompt()
-        assert "WordPress" in prompt
+        assert "Editorial" in prompt
+        assert "Bold SaaS" in prompt
+        assert "Minimal Portfolio" in prompt
+        assert "Warm & Approachable" in prompt
+
+    def test_contains_allowed_fonts(self):
+        prompt = build_system_prompt()
+        assert "Montserrat" in prompt
+        assert "DM Sans" in prompt
+        assert "Open Sans" in prompt
+
+    def test_bans_generic_copy(self):
+        prompt = build_system_prompt()
+        assert "Welcome to" in prompt  # listed as forbidden
+        assert "Our Features" in prompt  # listed as forbidden
+        assert "NEVER" in prompt
 
     def test_requires_json_output(self):
         prompt = build_system_prompt()
         assert "JSON" in prompt
-
-    def test_mentions_web_safe_fonts(self):
-        prompt = build_system_prompt()
-        assert "web-safe" in prompt
 
 
 class TestBuildUserPrompt:

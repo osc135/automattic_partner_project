@@ -10,21 +10,23 @@ def _make_valid_design():
     return {
         "theme_name": "Test Theme",
         "description": "A test theme",
+        "archetype": "B",
         "colors": {
-            "background": "#ffffff",
+            "base": "#ffffff",
+            "surface": "#f8f8fa",
             "foreground": "#1a1a1a",
-            "primary": "#2563eb",
-            "secondary": "#4f46e5",
-            "accent": "#0891b2",
-            "muted": "#f3f4f6",
+            "muted": "#6b7280",
+            "accent": "#2563eb",
+            "accent_foreground": "#ffffff",
         },
         "fonts": {
-            "heading": "Georgia, serif",
-            "body": "system-ui, sans-serif",
+            "heading": "Montserrat",
+            "body": "DM Sans",
         },
         "hero": {
-            "heading": "Welcome",
+            "heading": "Ship faster. Break nothing.",
             "subheading": "A great site.",
+            "button_text": "Get started free",
         },
         "features": {
             "heading": "Features",
@@ -35,6 +37,7 @@ def _make_valid_design():
             ],
         },
         "footer": {
+            "tagline": "Built for builders.",
             "columns": [
                 {"heading": "About", "text": "About us."},
                 {"heading": "Links", "text": "Some links."},
@@ -73,17 +76,17 @@ class TestValidateDesignSpec:
 
     def test_missing_color_raises(self):
         design = _make_valid_design()
-        del design["colors"]["primary"]
+        del design["colors"]["accent"]
         with pytest.raises(ThemeValidationError) as exc_info:
             validate_design_spec(json.dumps(design))
-        assert any("primary" in d for d in exc_info.value.details)
+        assert any("accent" in d for d in exc_info.value.details)
 
     def test_invalid_color_format_raises(self):
         design = _make_valid_design()
-        design["colors"]["primary"] = "not-a-hex"
+        design["colors"]["accent"] = "not-a-hex"
         with pytest.raises(ThemeValidationError) as exc_info:
             validate_design_spec(json.dumps(design))
-        assert any("primary" in d for d in exc_info.value.details)
+        assert any("accent" in d for d in exc_info.value.details)
 
     def test_missing_fonts_raises(self):
         design = _make_valid_design()

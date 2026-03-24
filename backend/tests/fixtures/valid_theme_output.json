@@ -1,54 +1,57 @@
 {
   "theme_name": "Dark Photography Blog",
   "description": "A moody, dark-toned photography blog with bold visuals",
+  "archetype": "C",
   "colors": {
-    "background": "#1a1a2e",
-    "foreground": "#f5f5f5",
-    "primary": "#e94560",
-    "secondary": "#16213e",
-    "accent": "#0f3460",
-    "muted": "#2a2a4a"
+    "base": "#0f0f14",
+    "surface": "#1a1a24",
+    "foreground": "#f0f0f5",
+    "muted": "#8888a0",
+    "accent": "#e94560",
+    "accent_foreground": "#ffffff"
   },
   "fonts": {
-    "heading": "Georgia, 'Times New Roman', serif",
-    "body": "system-ui, -apple-system, BlinkMacSystemFont, sans-serif"
+    "heading": "Montserrat",
+    "body": "DM Sans"
   },
   "hero": {
-    "heading": "Capturing Light in Darkness",
-    "subheading": "A photography journal exploring shadows, contrast, and the beauty found in low light."
+    "heading": "Light tells the story. I just press the shutter.",
+    "subheading": "A photography journal exploring shadows, contrast, and the beauty found in low light. New work published weekly.",
+    "button_text": "See the latest work"
   },
   "features": {
-    "heading": "What You'll Find Here",
+    "heading": "Three ways of seeing",
     "items": [
       {
-        "title": "Street Photography",
-        "description": "Candid moments captured in urban landscapes after dark."
+        "title": "After dark",
+        "description": "Candid moments captured in urban landscapes when the sun goes down. The city reveals its second face."
       },
       {
-        "title": "Long Exposure",
-        "description": "Light trails, star tracks, and the passage of time made visible."
+        "title": "Slow light",
+        "description": "Light trails, star tracks, and the passage of time made visible through long exposure techniques."
       },
       {
-        "title": "Portraits",
-        "description": "Dramatic portraiture using natural and artificial light sources."
+        "title": "Faces in shadow",
+        "description": "Dramatic portraiture using natural and artificial light sources. Finding character in contrast."
       }
     ]
   },
   "footer": {
+    "tagline": "Documenting the world through a dark lens since 2019.",
     "columns": [
       {
-        "heading": "About",
-        "text": "A personal photography blog documenting the world through a dark lens."
+        "heading": "Shot on location worldwide",
+        "text": "Currently based in Portland. Available for editorial and commercial work."
       },
       {
-        "heading": "Categories",
+        "heading": "Collections",
         "text": "Street, Long Exposure, Portraits, Behind the Lens"
       },
       {
-        "heading": "Connect",
-        "text": "Questions or collaboration ideas? I'd love to hear from you."
+        "heading": "Say hello",
+        "text": "Collaboration ideas and print inquiries always welcome."
       }
     ],
-    "copyright": "© 2024 Dark Photography Blog. All rights reserved."
+    "copyright": "© 2024 Dark Photography Blog"
   }
 }

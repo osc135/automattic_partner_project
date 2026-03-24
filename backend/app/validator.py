@@ -49,7 +49,7 @@ def validate_design_spec(raw_response: str) -> Dict[str, Any]:
 
     # Validate colors
     colors = design.get("colors", {})
-    required_colors = ["background", "foreground", "primary", "secondary", "accent", "muted"]
+    required_colors = ["base", "surface", "foreground", "muted", "accent", "accent_foreground"]
     for color_key in required_colors:
         if color_key not in colors:
             errors.append(f"Missing color: {color_key}")
