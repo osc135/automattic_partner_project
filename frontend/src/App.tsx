@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
 import Wizard from "./components/Wizard";
 import ThemePreview from "./components/ThemePreview";
+import ThemeGrade from "./components/ThemeGrade";
 import type { DesignSpec } from "./components/ThemePreview";
+import type { Grade } from "./components/ThemeGrade";
 import type { ThemeBrief } from "./types";
 
 type AppState =
   | { stage: "landing" }
   | { stage: "wizard" }
   | { stage: "loading"; startTime: number }
-  | { stage: "preview"; design: DesignSpec; filename: string; zipBase64: string }
+  | { stage: "preview"; design: DesignSpec; filename: string; zipBase64: string; grade: Grade }
   | { stage: "error"; message: string };
 
 const LOADING_STEPS = [
@@ -16,7 +18,7 @@ const LOADING_STEPS = [
   "Choosing colors & typography",
   "Writing site content",
   "Building templates",
-  "Packaging theme",
+  "Grading output quality",
 ];
 
 function LandingScreen({ onStart }: { onStart: () => void }) {
@@ -158,6 +160,7 @@ function App() {
         design: data.design,
         filename: data.filename,
         zipBase64: data.zip_base64,
+        grade: data.grade,
       });
     } catch (err) {
       setState({
@@ -212,12 +215,15 @@ function App() {
         )}
 
         {state.stage === "preview" && (
-          <ThemePreview
-            design={state.design}
-            filename={state.filename}
-            onDownload={handleDownload}
-            onReset={handleReset}
-          />
+          <>
+            <ThemeGrade grade={state.grade} />
+            <ThemePreview
+              design={state.design}
+              filename={state.filename}
+              onDownload={handleDownload}
+              onReset={handleReset}
+            />
+          </>
         )}
 
         {state.stage === "error" && (

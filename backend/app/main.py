@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.ai_provider import get_ai_provider
+from app.grader import grade_theme
 from app.models import ThemeBrief, ThemeGenerationError
 from app.packager import package_theme
 from app.prompt import build_system_prompt, build_user_prompt
@@ -105,11 +106,25 @@ def generate_theme(brief: ThemeBrief):
     # Package ZIP
     zip_bytes = package_theme(theme_slug, theme_files)
     zip_base64 = base64.b64encode(zip_bytes).decode("utf-8")
-    logger.info("📦 ZIP packaged (%d bytes). Sending response with preview data.", len(zip_bytes))
+    logger.info("📦 ZIP packaged (%d bytes).", len(zip_bytes))
+
+    # Grade the output
+    logger.info("📊 Grading theme output...")
+    brief_data = {
+        "use_case": brief.use_case,
+        "description": brief.description,
+        "color_preference": brief.color_preference,
+        "typography_preference": brief.typography_preference,
+        "layout_preference": brief.layout_preference,
+        "notes": brief.notes,
+    }
+    grade = grade_theme(brief_data, design)
+    logger.info("📊 Grade: %s", grade.get("overall_score"))
 
     return {
         "design": design,
         "theme_slug": theme_slug,
         "zip_base64": zip_base64,
         "filename": f"{theme_slug}.zip",
+        "grade": grade,
     }
