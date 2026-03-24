@@ -29,3 +29,8 @@ htmlcov/
 
 # Generated themes
 backend/generated_themes/
+
+# WordPress Docker
+wordpress/themes/
+wordpress/db_data/
+wordpress/wordpress_data/
