@@ -80,6 +80,9 @@ Return ONLY valid JSON:
 ## Rules
 
 COLORS:
+- The user's color_preference may be a palette name (e.g. "Ocean", "Sunset", "Forest", "Midnight", "Rose", "Earth", "Monochrome", "Coral") OR a custom JSON with primary, accent, and background hex values (prefixed with "#custom:").
+- If a palette name: interpret the mood and generate a matching 6-color set (base, surface, foreground, muted, accent, accent_foreground).
+- If custom colors: use the provided primary as "accent", the provided background as "base", and derive surface, foreground, muted, and accent_foreground to complement them.
 - Colors must be CLEAN and VIBRANT. No muddy grays or washed-out tones.
 - "base" and "surface" should be very close but distinguishable (e.g. #ffffff and #f8f8fa).
 - "accent" must be bold enough to work as a button background with "accent_foreground" text on top.

@@ -1,3 +1,4 @@
+import base64
 import io
 import json
 import zipfile
@@ -23,16 +24,35 @@ class TestGenerateEndpoint:
             response = client.post("/api/generate", json=valid_brief_data)
 
         assert response.status_code == 200
-        assert response.headers["content-type"] == "application/zip"
-        assert "attachment" in response.headers["content-disposition"]
+        body = response.json()
+        assert "design" in body
+        assert "zip_base64" in body
+        assert "filename" in body
+        assert body["filename"].endswith(".zip")
 
-        # Verify ZIP contents
-        zf = zipfile.ZipFile(io.BytesIO(response.content))
+        # Verify ZIP contents from base64
+        zip_bytes = base64.b64decode(body["zip_base64"])
+        zf = zipfile.ZipFile(io.BytesIO(zip_bytes))
         assert zf.testzip() is None
         names = zf.namelist()
         assert any("style.css" in n for n in names)
         assert any("theme.json" in n for n in names)
         assert any("templates/index.html" in n for n in names)
+
+    def test_response_includes_design_spec(self, client, valid_brief_data, valid_theme_output):
+        mock_provider = MagicMock()
+        mock_provider.generate.return_value = valid_theme_output
+
+        with patch("app.main.get_ai_provider", return_value=mock_provider):
+            response = client.post("/api/generate", json=valid_brief_data)
+
+        body = response.json()
+        design = body["design"]
+        assert "theme_name" in design
+        assert "colors" in design
+        assert "fonts" in design
+        assert "hero" in design
+        assert "features" in design
 
     def test_missing_required_field_returns_422(self, client):
         response = client.post(
@@ -91,18 +111,6 @@ class TestGenerateEndpoint:
 
         assert response.status_code == 200
 
-    def test_zip_filename_matches_slug(
-        self, client, valid_brief_data, valid_theme_output
-    ):
-        mock_provider = MagicMock()
-        mock_provider.generate.return_value = valid_theme_output
-
-        with patch("app.main.get_ai_provider", return_value=mock_provider):
-            response = client.post("/api/generate", json=valid_brief_data)
-
-        disposition = response.headers["content-disposition"]
-        assert ".zip" in disposition
-
     def test_generated_zip_has_valid_theme_json(
         self, client, valid_brief_data, valid_theme_output
     ):
@@ -112,7 +120,9 @@ class TestGenerateEndpoint:
         with patch("app.main.get_ai_provider", return_value=mock_provider):
             response = client.post("/api/generate", json=valid_brief_data)
 
-        zf = zipfile.ZipFile(io.BytesIO(response.content))
+        body = response.json()
+        zip_bytes = base64.b64decode(body["zip_base64"])
+        zf = zipfile.ZipFile(io.BytesIO(zip_bytes))
         theme_json_path = [n for n in zf.namelist() if n.endswith("theme.json")][0]
         theme_json = json.loads(zf.read(theme_json_path))
         assert theme_json["version"] == 3

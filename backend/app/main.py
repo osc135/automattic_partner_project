@@ -1,8 +1,9 @@
+import base64
 import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import JSONResponse
 
 from app.ai_provider import get_ai_provider
 from app.models import ThemeBrief, ThemeGenerationError
@@ -101,14 +102,14 @@ def generate_theme(brief: ThemeBrief):
             ).model_dump(),
         )
 
-    # Package and return ZIP
+    # Package ZIP
     zip_bytes = package_theme(theme_slug, theme_files)
-    logger.info("📦 ZIP packaged (%d bytes). Sending response.", len(zip_bytes))
+    zip_base64 = base64.b64encode(zip_bytes).decode("utf-8")
+    logger.info("📦 ZIP packaged (%d bytes). Sending response with preview data.", len(zip_bytes))
 
-    return Response(
-        content=zip_bytes,
-        media_type="application/zip",
-        headers={
-            "Content-Disposition": f'attachment; filename="{theme_slug}.zip"'
-        },
-    )
+    return {
+        "design": design,
+        "theme_slug": theme_slug,
+        "zip_base64": zip_base64,
+        "filename": f"{theme_slug}.zip",
+    }

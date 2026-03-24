@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import Wizard from "./components/Wizard";
+import ThemePreview from "./components/ThemePreview";
+import type { DesignSpec } from "./components/ThemePreview";
 import type { ThemeBrief } from "./types";
 
 type AppState =
   | { stage: "landing" }
   | { stage: "wizard" }
   | { stage: "loading"; startTime: number }
-  | { stage: "success"; url: string; filename: string }
+  | { stage: "preview"; design: DesignSpec; filename: string; zipBase64: string }
   | { stage: "error"; message: string };
 
 const LOADING_STEPS = [
@@ -20,7 +22,6 @@ const LOADING_STEPS = [
 function LandingScreen({ onStart }: { onStart: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[70vh] animate-fade-in">
-      {/* Icon */}
       <div className="mb-8 animate-float">
         <div className="w-20 h-20 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center">
           <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-accent">
@@ -60,7 +61,7 @@ function LandingScreen({ onStart }: { onStart: () => void }) {
         </div>
         <div className="flex items-center gap-2">
           <div className="w-1.5 h-1.5 rounded-full bg-success" />
-          Valid block theme
+          Live preview
         </div>
         <div className="flex items-center gap-2">
           <div className="w-1.5 h-1.5 rounded-full bg-success" />
@@ -86,7 +87,6 @@ function LoadingScreen({ startTime }: { startTime: number }) {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] animate-fade-in">
-      {/* Animated rings */}
       <div className="relative w-24 h-24 mb-12">
         <div className="absolute inset-0 rounded-full border border-border-subtle animate-glow" />
         <div className="absolute inset-2 rounded-full border border-accent/30 animate-spin" style={{ animationDuration: "3s" }} />
@@ -125,84 +125,13 @@ function LoadingScreen({ startTime }: { startTime: number }) {
   );
 }
 
-function SuccessScreen({
-  url,
-  filename,
-  onReset,
-}: {
-  url: string;
-  filename: string;
-  onReset: () => void;
-}) {
-  return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] animate-fade-in">
-      <div className="w-20 h-20 rounded-2xl bg-success/10 border border-success/20 flex items-center justify-center mb-8">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-success">
-          <polyline points="20 6 9 17 4 12" />
-        </svg>
-      </div>
-
-      <h2 className="text-3xl font-bold text-text-primary mb-3">
-        Your theme is ready
-      </h2>
-      <p className="text-lg text-text-secondary mb-10 text-center max-w-sm">
-        Download the ZIP and upload it to WordPress via
-        Appearance &rarr; Themes &rarr; Upload
-      </p>
-
-      <a
-        href={url}
-        download={filename}
-        className="group inline-flex items-center gap-3 px-10 py-4 text-lg text-white bg-accent hover:bg-accent-hover rounded-xl transition-all font-medium shadow-lg shadow-accent/20 hover:shadow-xl hover:shadow-accent/30 hover:scale-[1.02] active:scale-[0.98]"
-      >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-          <polyline points="7 10 12 15 17 10" />
-          <line x1="12" y1="15" x2="12" y2="3" />
-        </svg>
-        Download {filename}
-      </a>
-
-      <button
-        type="button"
-        onClick={onReset}
-        className="mt-8 text-base text-text-muted hover:text-text-secondary transition-colors cursor-pointer"
-      >
-        Generate another theme
-      </button>
-    </div>
-  );
-}
-
-function ErrorScreen({
-  message,
-  onReset,
-}: {
-  message: string;
-  onReset: () => void;
-}) {
-  return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] animate-fade-in">
-      <div className="w-20 h-20 rounded-2xl bg-error/10 border border-error/20 flex items-center justify-center mb-8">
-        <span className="text-error text-3xl font-light">!</span>
-      </div>
-
-      <h2 className="text-3xl font-bold text-text-primary mb-3">
-        Something went wrong
-      </h2>
-      <p className="text-lg text-error/70 mb-10 text-center max-w-sm">
-        {message}
-      </p>
-
-      <button
-        type="button"
-        onClick={onReset}
-        className="px-10 py-4 text-lg text-white bg-accent hover:bg-accent-hover rounded-xl transition-all font-medium cursor-pointer"
-      >
-        Try again
-      </button>
-    </div>
-  );
+function base64ToBlob(base64: string, mimeType: string): Blob {
+  const bytes = atob(base64);
+  const arr = new Uint8Array(bytes.length);
+  for (let i = 0; i < bytes.length; i++) {
+    arr[i] = bytes.charCodeAt(i);
+  }
+  return new Blob([arr], { type: mimeType });
 }
 
 function App() {
@@ -223,9 +152,13 @@ function App() {
         throw new Error(error.error || "Generation failed");
       }
 
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      setState({ stage: "success", url, filename: `${slug}.zip` });
+      const data = await response.json();
+      setState({
+        stage: "preview",
+        design: data.design,
+        filename: data.filename,
+        zipBase64: data.zip_base64,
+      });
     } catch (err) {
       setState({
         stage: "error",
@@ -235,23 +168,41 @@ function App() {
     }
   };
 
+  const handleDownload = () => {
+    if (state.stage !== "preview") return;
+    const blob = base64ToBlob(state.zipBase64, "application/zip");
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = state.filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleReset = () => setState({ stage: "landing" });
 
   return (
     <div className="min-h-screen bg-grid bg-radial-glow">
-      <div className="px-6 py-12 max-w-3xl mx-auto">
+      <div className={`px-6 py-12 mx-auto ${state.stage === "preview" ? "max-w-5xl" : "max-w-3xl"}`}>
+        {state.stage !== "preview" && (
+          <div className="text-center mb-10">
+            {state.stage === "wizard" && (
+              <>
+                <p className="text-sm text-text-muted mb-1">Step-by-step</p>
+                <h1 className="text-3xl font-bold text-text-primary">
+                  Design your theme
+                </h1>
+              </>
+            )}
+          </div>
+        )}
+
         {state.stage === "landing" && (
           <LandingScreen onStart={() => setState({ stage: "wizard" })} />
         )}
 
         {state.stage === "wizard" && (
           <div className="animate-fade-in">
-            <div className="text-center mb-10">
-              <p className="text-sm text-text-muted mb-1">Step-by-step</p>
-              <h1 className="text-3xl font-bold text-text-primary">
-                Design your theme
-              </h1>
-            </div>
             <Wizard onSubmit={handleSubmit} />
           </div>
         )}
@@ -260,16 +211,34 @@ function App() {
           <LoadingScreen startTime={state.startTime} />
         )}
 
-        {state.stage === "success" && (
-          <SuccessScreen
-            url={state.url}
+        {state.stage === "preview" && (
+          <ThemePreview
+            design={state.design}
             filename={state.filename}
+            onDownload={handleDownload}
             onReset={handleReset}
           />
         )}
 
         {state.stage === "error" && (
-          <ErrorScreen message={state.message} onReset={handleReset} />
+          <div className="flex flex-col items-center justify-center min-h-[60vh] animate-fade-in">
+            <div className="w-20 h-20 rounded-2xl bg-error/10 border border-error/20 flex items-center justify-center mb-8">
+              <span className="text-error text-3xl font-light">!</span>
+            </div>
+            <h2 className="text-3xl font-bold text-text-primary mb-3">
+              Something went wrong
+            </h2>
+            <p className="text-lg text-error/70 mb-10 text-center max-w-sm">
+              {state.message}
+            </p>
+            <button
+              type="button"
+              onClick={handleReset}
+              className="px-10 py-4 text-lg text-white bg-accent hover:bg-accent-hover rounded-xl transition-all font-medium cursor-pointer"
+            >
+              Try again
+            </button>
+          </div>
         )}
       </div>
     </div>
