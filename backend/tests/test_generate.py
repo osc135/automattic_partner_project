@@ -69,13 +69,8 @@ class TestGenerateEndpoint:
         body = response.json()
         assert "error" in body
 
-    def test_ai_output_with_custom_html_returns_400(
-        self, client, valid_brief_data, valid_theme_files
-    ):
-        # Inject a Custom HTML block
-        valid_theme_files["templates/index.html"] = (
-            "<!-- wp:html -->\n<div>bad</div>\n<!-- /wp:html -->"
-        )
+    def test_ai_output_missing_colors_returns_400(self, client, valid_brief_data, valid_theme_files):
+        del valid_theme_files["colors"]
         mock_provider = MagicMock()
         mock_provider.generate.return_value = json.dumps(valid_theme_files)
 
@@ -83,8 +78,6 @@ class TestGenerateEndpoint:
             response = client.post("/api/generate", json=valid_brief_data)
 
         assert response.status_code == 400
-        body = response.json()
-        assert any("Custom HTML" in d for d in body["details"])
 
     def test_html_tags_stripped_from_description(
         self, client, valid_brief_data, valid_theme_output
@@ -96,7 +89,6 @@ class TestGenerateEndpoint:
         with patch("app.main.get_ai_provider", return_value=mock_provider):
             response = client.post("/api/generate", json=valid_brief_data)
 
-        # Should succeed — HTML is stripped, not rejected
         assert response.status_code == 200
 
     def test_zip_filename_matches_slug(
@@ -110,6 +102,21 @@ class TestGenerateEndpoint:
 
         disposition = response.headers["content-disposition"]
         assert ".zip" in disposition
+
+    def test_generated_zip_has_valid_theme_json(
+        self, client, valid_brief_data, valid_theme_output
+    ):
+        mock_provider = MagicMock()
+        mock_provider.generate.return_value = valid_theme_output
+
+        with patch("app.main.get_ai_provider", return_value=mock_provider):
+            response = client.post("/api/generate", json=valid_brief_data)
+
+        zf = zipfile.ZipFile(io.BytesIO(response.content))
+        theme_json_path = [n for n in zf.namelist() if n.endswith("theme.json")][0]
+        theme_json = json.loads(zf.read(theme_json_path))
+        assert theme_json["version"] == 3
+        assert "palette" in theme_json["settings"]["color"]
 
 
 class TestHealthEndpoint:

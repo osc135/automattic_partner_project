@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 
@@ -9,8 +9,10 @@ from app.models import ThemeBrief, ThemeGenerationError
 from app.packager import package_theme
 from app.prompt import build_system_prompt, build_user_prompt
 from app.sanitize import sanitize_brief_field, sanitize_theme_slug
-from app.validator import ThemeValidationError, validate_theme_output
+from app.theme_builder import build_theme_files
+from app.validator import ThemeValidationError, validate_design_spec, validate_theme_files
 
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="WordPress Theme Generator API")
@@ -32,26 +34,32 @@ def health_check():
 def generate_theme(brief: ThemeBrief):
     """Generate a WordPress Block Theme from a user brief.
 
-    Orchestrates: sanitize → prompt → AI → validate → package → respond.
+    Flow: sanitize → prompt → AI (design JSON) → validate design →
+          build theme files from templates → validate files → ZIP → respond.
     """
     # Sanitize freeform fields
+    logger.info("📥 Received brief: use_case=%s, color=%s, typography=%s",
+                brief.use_case, brief.color_preference, brief.typography_preference)
     brief.description = sanitize_brief_field(brief.description)
     if brief.notes:
         brief.notes = sanitize_brief_field(brief.notes)
 
     # Generate theme slug
     theme_slug = sanitize_theme_slug(brief.description)
+    logger.info("🏷️  Theme slug: %s", theme_slug)
 
     # Build prompts
     system_prompt = build_system_prompt()
     user_prompt = build_user_prompt(brief, theme_slug)
+    logger.info("📝 Prompts built. Calling AI for design spec...")
 
-    # Call AI provider
+    # Call AI provider — returns design tokens + content, NOT markup
     try:
         provider = get_ai_provider()
         raw_response = provider.generate(system_prompt, user_prompt)
+        logger.info("✅ AI response received (%d chars)", len(raw_response))
     except Exception as e:
-        logger.error("AI provider error: %s", e)
+        logger.error("❌ AI provider error: %s", e)
         return JSONResponse(
             status_code=502,
             content=ThemeGenerationError(
@@ -60,11 +68,31 @@ def generate_theme(brief: ThemeBrief):
             ).model_dump(),
         )
 
-    # Validate AI output
+    # Validate design specification
     try:
-        theme_files = validate_theme_output(raw_response)
+        logger.info("🔍 Validating design spec...")
+        design = validate_design_spec(raw_response)
+        logger.info("✅ Design spec valid. Theme: %s", design.get("theme_name"))
     except ThemeValidationError as e:
-        logger.warning("Theme validation failed: %s", e.details)
+        logger.warning("❌ Design spec validation failed: %s", e.details)
+        return JSONResponse(
+            status_code=400,
+            content=ThemeGenerationError(
+                error=e.message,
+                details=e.details,
+            ).model_dump(),
+        )
+
+    # Build theme files from templates + design spec
+    logger.info("🔨 Building theme files from templates...")
+    theme_files = build_theme_files(design, theme_slug)
+
+    # Validate assembled files
+    try:
+        validate_theme_files(theme_files)
+        logger.info("✅ Theme files valid. Files: %s", list(theme_files.keys()))
+    except ThemeValidationError as e:
+        logger.warning("❌ Theme file validation failed: %s", e.details)
         return JSONResponse(
             status_code=400,
             content=ThemeGenerationError(
@@ -75,6 +103,7 @@ def generate_theme(brief: ThemeBrief):
 
     # Package and return ZIP
     zip_bytes = package_theme(theme_slug, theme_files)
+    logger.info("📦 ZIP packaged (%d bytes). Sending response.", len(zip_bytes))
 
     return Response(
         content=zip_bytes,

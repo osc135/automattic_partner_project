@@ -1,5 +1,5 @@
 from app.models import ThemeBrief
-from app.prompt import REQUIRED_FILES, build_system_prompt, build_user_prompt
+from app.prompt import build_system_prompt, build_user_prompt
 
 
 def _make_brief(**overrides):
@@ -14,31 +14,26 @@ def _make_brief(**overrides):
 
 
 class TestBuildSystemPrompt:
-    def test_contains_all_required_files(self):
+    def test_contains_design_spec_structure(self):
         prompt = build_system_prompt()
-        for f in REQUIRED_FILES:
-            assert f in prompt
+        assert "theme_name" in prompt
+        assert "colors" in prompt
+        assert "fonts" in prompt
+        assert "hero" in prompt
+        assert "features" in prompt
+        assert "footer" in prompt
 
-    def test_contains_wordpress_rules(self):
+    def test_contains_wordpress_context(self):
         prompt = build_system_prompt()
-        assert "wp:paragraph" in prompt
-        assert "wp:html" in prompt  # mentioned as forbidden
-
-    def test_contains_all_five_rule_categories(self):
-        prompt = build_system_prompt()
-        assert "Rule 1" in prompt
-        assert "Rule 2" in prompt
-        assert "Rule 3" in prompt
-        assert "Rule 4" in prompt
-        assert "Rule 5" in prompt
-
-    def test_forbids_custom_html_block(self):
-        prompt = build_system_prompt()
-        assert "Do NOT use the Custom HTML block" in prompt
+        assert "WordPress" in prompt
 
     def test_requires_json_output(self):
         prompt = build_system_prompt()
-        assert "valid JSON" in prompt
+        assert "JSON" in prompt
+
+    def test_mentions_web_safe_fonts(self):
+        prompt = build_system_prompt()
+        assert "web-safe" in prompt
 
 
 class TestBuildUserPrompt:

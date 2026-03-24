@@ -15,68 +15,82 @@ REQUIRED_FILES = [
     "patterns/features.php",
 ]
 
-SYSTEM_PROMPT = """You are a WordPress Block Theme generator. You receive a user brief and produce a complete, installable WordPress Block Theme as a single JSON object.
+SYSTEM_PROMPT = """You are a WordPress theme design assistant. Given a user brief, return a JSON object describing the theme's design tokens and content. Do NOT return any WordPress markup or file contents — just the design specification.
 
-## Output Format
+Return ONLY valid JSON with this exact structure:
 
-Return ONLY a valid JSON object. Each key is a relative file path and each value is the complete file content as a string. You must include exactly these files:
+{
+  "theme_name": "Human-readable theme name",
+  "description": "One-sentence theme description",
+  "colors": {
+    "background": "#hex (main site background)",
+    "foreground": "#hex (main text color)",
+    "primary": "#hex (brand/accent color)",
+    "secondary": "#hex (secondary accent)",
+    "accent": "#hex (highlights, links, buttons)",
+    "muted": "#hex (subtle backgrounds, borders)"
+  },
+  "fonts": {
+    "heading": "web-safe font stack for headings (e.g. Georgia, 'Times New Roman', serif)",
+    "body": "web-safe font stack for body text (e.g. system-ui, -apple-system, sans-serif)"
+  },
+  "hero": {
+    "heading": "Main hero headline text",
+    "subheading": "Supporting text below the headline (1-2 sentences)"
+  },
+  "features": {
+    "heading": "Section heading for the features area",
+    "items": [
+      {
+        "title": "Feature 1 title",
+        "description": "Feature 1 description (1 sentence)"
+      },
+      {
+        "title": "Feature 2 title",
+        "description": "Feature 2 description (1 sentence)"
+      },
+      {
+        "title": "Feature 3 title",
+        "description": "Feature 3 description (1 sentence)"
+      }
+    ]
+  },
+  "footer": {
+    "columns": [
+      {
+        "heading": "Column 1 heading",
+        "text": "Column 1 content (1-2 sentences)"
+      },
+      {
+        "heading": "Column 2 heading",
+        "text": "Column 2 content (1-2 sentences)"
+      },
+      {
+        "heading": "Column 3 heading",
+        "text": "Column 3 content (1-2 sentences)"
+      }
+    ],
+    "copyright": "Copyright line text"
+  }
+}
 
-{required_files}
+## Guidelines
 
-Do not include any other text, explanation, or markdown formatting — just the raw JSON object.
+- Choose colors that match the user's color preference (basic = muted/neutral, medium = balanced, bold = high contrast/saturated).
+- Choose fonts that match the typography preference. Use ONLY web-safe fonts: system-ui, Georgia, 'Times New Roman', Arial, Helvetica, 'Courier New', etc. Do not reference Google Fonts.
+- Write all content to match the use case and description. Make it sound like a real site — no placeholder text.
+- The hero should be compelling and specific to the site's purpose.
+- Features should highlight 3 key aspects relevant to the use case.
+- Footer columns should have relevant info (about, categories/links, contact).
+- Theme name should be creative and reflect the site's purpose.
 
-## Rule 1: WordPress-Specific Output
-
-- All template and pattern files must use native WordPress block markup exclusively.
-- Use standard block comments: <!-- wp:paragraph -->, <!-- wp:group -->, <!-- wp:columns -->, <!-- wp:image -->, <!-- wp:heading -->, <!-- wp:navigation -->, <!-- wp:site-title -->, <!-- wp:post-title -->, <!-- wp:post-content -->, <!-- wp:post-featured-image -->, <!-- wp:query -->, <!-- wp:template-part -->, etc.
-- Do NOT use the Custom HTML block (<!-- wp:html -->) under any circumstances.
-- Do NOT invent non-existent blocks or unsupported attributes.
-- The theme.json must follow WordPress theme.json version 3 schema.
-- The style.css must include a valid WordPress theme header comment with Theme Name, Theme URI, Description, Version, Requires at least, Tested up to, Requires PHP, License, License URI, and Text Domain fields.
-- The functions.php must include proper theme setup with add_theme_support calls and wp_enqueue_style for the stylesheet.
-- Pattern files (patterns/*.php) must include the required PHP header comment with Title and Slug fields.
-
-## Rule 2: Structure and Readability
-
-- Use common website sections: header with navigation, hero/banner area, content sections, feature highlights, and footer.
-- Keep layouts logically ordered and easy to scan.
-- Use clear heading hierarchy (h1 for main title, h2 for sections, h3 for subsections).
-- Make templates feel like a real, intentional site — not a generic demo.
-- Avoid unnecessarily deep nesting or overly complex block structures.
-- Use <!-- wp:template-part {{"slug":"header","area":"header"}} /--> and <!-- wp:template-part {{"slug":"footer","area":"footer"}} /--> in templates.
-
-## Rule 3: Visual Design
-
-- Apply the user's color preference consistently in theme.json palette and throughout templates.
-- Apply the user's typography preference in theme.json fontFamilies and font size presets.
-- Match the layout to the user's structure preference when provided.
-- Create a visually striking hero or banner area where appropriate for the use case.
-- Use spacing, alignment, padding, and block grouping with intention.
-- Use wp:group blocks with backgroundColor and textColor attributes for visual sections.
-- Aim for a polished, modern, professional result — not a boilerplate template.
-
-## Rule 4: Content Quality
-
-- Write natural, coherent website copy that matches the use case and description.
-- Keep text concise and contextually relevant.
-- Avoid generic placeholder text like "Lorem ipsum" — use realistic content instead.
-- Make headings and section labels sound like they belong on a real site of this type.
-- Ensure all text content reflects the user's described vibe, tone, and purpose.
-
-## Rule 5: Validation and Safety
-
-- Never use the Custom HTML block (<!-- wp:html -->).
-- Every opening block comment must have a matching closing comment.
-- Return valid, parseable JSON only.
-- The theme.json value must itself be valid JSON.
-- If a design intent cannot be expressed using native blocks, simplify rather than break any rule above.
+Return ONLY the JSON object. No explanation, no markdown fences.
 """
 
 
 def build_system_prompt() -> str:
-    """Build the system prompt with the required file list injected."""
-    files_list = "\n".join(f"- {f}" for f in REQUIRED_FILES)
-    return SYSTEM_PROMPT.format(required_files=files_list)
+    """Build the system prompt for design token generation."""
+    return SYSTEM_PROMPT
 
 
 def build_user_prompt(brief: ThemeBrief, theme_slug: str) -> str:
@@ -91,8 +105,7 @@ def build_user_prompt(brief: ThemeBrief, theme_slug: str) -> str:
         "theme_slug": theme_slug,
     }
     return (
-        f"Generate a complete WordPress Block Theme based on this brief:\n\n"
+        f"Design a WordPress theme based on this brief:\n\n"
         f"{json.dumps(brief_data, indent=2)}\n\n"
-        f"Return the theme as a single JSON object with file paths as keys "
-        f"and file contents as values. Include all required files."
+        f"Return the design specification JSON."
     )

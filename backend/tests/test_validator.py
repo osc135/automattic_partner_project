@@ -2,140 +2,129 @@ import json
 
 import pytest
 
-from app.validator import ThemeValidationError, validate_theme_output
+from app.validator import ThemeValidationError, validate_design_spec, validate_theme_files
 
 
-def _make_valid_theme_files():
-    """Return a minimal valid theme file dict."""
+def _make_valid_design():
+    """Return a minimal valid design specification."""
     return {
-        "style.css": (
-            "/*\n"
-            "Theme Name: Test Theme\n"
-            "Version: 1.0.0\n"
-            "Description: A test theme\n"
-            "*/"
-        ),
-        "theme.json": json.dumps(
-            {"version": 3, "settings": {}, "styles": {}}
-        ),
-        "functions.php": "<?php\nadd_action('after_setup_theme', function() {});",
-        "templates/index.html": (
-            '<!-- wp:template-part {"slug":"header","area":"header"} /-->\n'
-            "<!-- wp:group -->\n<div>\n<!-- wp:paragraph -->\n"
-            "<p>Hello</p>\n<!-- /wp:paragraph -->\n</div>\n<!-- /wp:group -->\n"
-            '<!-- wp:template-part {"slug":"footer","area":"footer"} /-->'
-        ),
-        "templates/single.html": (
-            '<!-- wp:template-part {"slug":"header","area":"header"} /-->\n'
-            "<!-- wp:post-content /-->\n"
-            '<!-- wp:template-part {"slug":"footer","area":"footer"} /-->'
-        ),
-        "templates/page.html": (
-            '<!-- wp:template-part {"slug":"header","area":"header"} /-->\n'
-            "<!-- wp:post-content /-->\n"
-            '<!-- wp:template-part {"slug":"footer","area":"footer"} /-->'
-        ),
-        "parts/header.html": (
-            "<!-- wp:group -->\n<div>\n"
-            "<!-- wp:site-title /-->\n"
-            "</div>\n<!-- /wp:group -->"
-        ),
-        "parts/footer.html": (
-            "<!-- wp:group -->\n<div>\n"
-            "<!-- wp:paragraph -->\n<p>Footer</p>\n<!-- /wp:paragraph -->\n"
-            "</div>\n<!-- /wp:group -->"
-        ),
-        "patterns/hero.php": (
-            "<?php\n/**\n * Title: Hero\n * Slug: test-theme/hero\n */\n?>\n"
-            "<!-- wp:group -->\n<div>\n"
-            "<!-- wp:heading -->\n<h2>Welcome</h2>\n<!-- /wp:heading -->\n"
-            "</div>\n<!-- /wp:group -->"
-        ),
-        "patterns/features.php": (
-            "<?php\n/**\n * Title: Features\n * Slug: test-theme/features\n */\n?>\n"
-            "<!-- wp:group -->\n<div>\n"
-            "<!-- wp:heading -->\n<h2>Features</h2>\n<!-- /wp:heading -->\n"
-            "</div>\n<!-- /wp:group -->"
-        ),
+        "theme_name": "Test Theme",
+        "description": "A test theme",
+        "colors": {
+            "background": "#ffffff",
+            "foreground": "#1a1a1a",
+            "primary": "#2563eb",
+            "secondary": "#4f46e5",
+            "accent": "#0891b2",
+            "muted": "#f3f4f6",
+        },
+        "fonts": {
+            "heading": "Georgia, serif",
+            "body": "system-ui, sans-serif",
+        },
+        "hero": {
+            "heading": "Welcome",
+            "subheading": "A great site.",
+        },
+        "features": {
+            "heading": "Features",
+            "items": [
+                {"title": "Fast", "description": "Very fast."},
+                {"title": "Simple", "description": "Very simple."},
+                {"title": "Clean", "description": "Very clean."},
+            ],
+        },
+        "footer": {
+            "columns": [
+                {"heading": "About", "text": "About us."},
+                {"heading": "Links", "text": "Some links."},
+                {"heading": "Contact", "text": "Get in touch."},
+            ],
+            "copyright": "© 2024 Test Theme",
+        },
     }
 
 
-class TestValidateThemeOutput:
-    def test_valid_output_passes(self):
-        raw = json.dumps(_make_valid_theme_files())
-        result = validate_theme_output(raw)
-        assert "style.css" in result
-        assert len(result) == 10
+class TestValidateDesignSpec:
+    def test_valid_design_passes(self):
+        raw = json.dumps(_make_valid_design())
+        result = validate_design_spec(raw)
+        assert result["theme_name"] == "Test Theme"
 
     def test_strips_markdown_code_fences(self):
-        raw = "```json\n" + json.dumps(_make_valid_theme_files()) + "\n```"
-        result = validate_theme_output(raw)
-        assert "style.css" in result
+        raw = "```json\n" + json.dumps(_make_valid_design()) + "\n```"
+        result = validate_design_spec(raw)
+        assert result["theme_name"] == "Test Theme"
 
     def test_invalid_json_raises(self):
         with pytest.raises(ThemeValidationError, match="not valid JSON"):
-            validate_theme_output("not json at all")
+            validate_design_spec("not json at all")
 
     def test_non_object_json_raises(self):
         with pytest.raises(ThemeValidationError, match="JSON object"):
-            validate_theme_output('["an", "array"]')
+            validate_design_spec('["an", "array"]')
 
-    def test_missing_required_files_raises(self):
-        files = _make_valid_theme_files()
+    def test_missing_required_key_raises(self):
+        design = _make_valid_design()
+        del design["colors"]
+        with pytest.raises(ThemeValidationError) as exc_info:
+            validate_design_spec(json.dumps(design))
+        assert any("colors" in d for d in exc_info.value.details)
+
+    def test_missing_color_raises(self):
+        design = _make_valid_design()
+        del design["colors"]["primary"]
+        with pytest.raises(ThemeValidationError) as exc_info:
+            validate_design_spec(json.dumps(design))
+        assert any("primary" in d for d in exc_info.value.details)
+
+    def test_invalid_color_format_raises(self):
+        design = _make_valid_design()
+        design["colors"]["primary"] = "not-a-hex"
+        with pytest.raises(ThemeValidationError) as exc_info:
+            validate_design_spec(json.dumps(design))
+        assert any("primary" in d for d in exc_info.value.details)
+
+    def test_missing_fonts_raises(self):
+        design = _make_valid_design()
+        del design["fonts"]["heading"]
+        with pytest.raises(ThemeValidationError) as exc_info:
+            validate_design_spec(json.dumps(design))
+        assert any("heading" in d for d in exc_info.value.details)
+
+    def test_too_few_feature_items_raises(self):
+        design = _make_valid_design()
+        design["features"]["items"] = [{"title": "One", "description": "Only one."}]
+        with pytest.raises(ThemeValidationError) as exc_info:
+            validate_design_spec(json.dumps(design))
+        assert any("items" in d for d in exc_info.value.details)
+
+    def test_too_few_footer_columns_raises(self):
+        design = _make_valid_design()
+        design["footer"]["columns"] = [{"heading": "One", "text": "Only one."}]
+        with pytest.raises(ThemeValidationError) as exc_info:
+            validate_design_spec(json.dumps(design))
+        assert any("columns" in d for d in exc_info.value.details)
+
+
+class TestValidateThemeFiles:
+    def test_valid_files_pass(self):
+        from app.theme_builder import build_theme_files
+        files = build_theme_files(_make_valid_design(), "test-theme")
+        validate_theme_files(files)  # should not raise
+
+    def test_missing_file_raises(self):
+        from app.theme_builder import build_theme_files
+        files = build_theme_files(_make_valid_design(), "test-theme")
         del files["templates/index.html"]
         with pytest.raises(ThemeValidationError) as exc_info:
-            validate_theme_output(json.dumps(files))
-        assert "templates/index.html" in str(exc_info.value.details)
+            validate_theme_files(files)
+        assert any("index.html" in d for d in exc_info.value.details)
 
-    def test_custom_html_block_detected(self):
-        files = _make_valid_theme_files()
-        files["templates/index.html"] = (
-            "<!-- wp:html -->\n<div>bad</div>\n<!-- /wp:html -->"
-        )
+    def test_custom_html_block_raises(self):
+        from app.theme_builder import build_theme_files
+        files = build_theme_files(_make_valid_design(), "test-theme")
+        files["templates/index.html"] = "<!-- wp:html --><div>bad</div><!-- /wp:html -->"
         with pytest.raises(ThemeValidationError) as exc_info:
-            validate_theme_output(json.dumps(files))
+            validate_theme_files(files)
         assert any("Custom HTML" in d for d in exc_info.value.details)
-
-    def test_custom_html_with_attrs_detected(self):
-        files = _make_valid_theme_files()
-        files["parts/header.html"] = (
-            '<!-- wp:html {"lock":true} -->\n<div>bad</div>\n<!-- /wp:html -->'
-        )
-        with pytest.raises(ThemeValidationError) as exc_info:
-            validate_theme_output(json.dumps(files))
-        assert any("Custom HTML" in d for d in exc_info.value.details)
-
-    def test_mismatched_blocks_detected(self):
-        files = _make_valid_theme_files()
-        files["templates/index.html"] = (
-            "<!-- wp:group -->\n<div>\n"
-            "<!-- wp:paragraph -->\n<p>Hello</p>\n<!-- /wp:paragraph -->\n"
-            # Missing closing wp:group
-        )
-        with pytest.raises(ThemeValidationError) as exc_info:
-            validate_theme_output(json.dumps(files))
-        assert any("Mismatched" in d for d in exc_info.value.details)
-
-    def test_invalid_theme_json_detected(self):
-        files = _make_valid_theme_files()
-        files["theme.json"] = "not valid json"
-        with pytest.raises(ThemeValidationError) as exc_info:
-            validate_theme_output(json.dumps(files))
-        assert any("theme.json" in d for d in exc_info.value.details)
-
-    def test_missing_style_css_header_detected(self):
-        files = _make_valid_theme_files()
-        files["style.css"] = "/* nothing useful */"
-        with pytest.raises(ThemeValidationError) as exc_info:
-            validate_theme_output(json.dumps(files))
-        assert any("style.css" in d for d in exc_info.value.details)
-
-    def test_self_closing_blocks_dont_need_closers(self):
-        files = _make_valid_theme_files()
-        files["templates/index.html"] = (
-            '<!-- wp:template-part {"slug":"header"} /-->\n'
-            "<!-- wp:post-content /-->\n"
-            '<!-- wp:template-part {"slug":"footer"} /-->'
-        )
-        result = validate_theme_output(json.dumps(files))
-        assert "templates/index.html" in result
