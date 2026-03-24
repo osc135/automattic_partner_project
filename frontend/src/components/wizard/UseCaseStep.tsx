@@ -2,12 +2,12 @@ import { useState } from "react";
 import SelectableCard from "./SelectableCard";
 
 const USE_CASES = [
-  { value: "personal", label: "Personal", description: "A personal website or homepage" },
-  { value: "business", label: "Business", description: "A company or professional site" },
+  { value: "personal", label: "Personal", description: "Personal website or homepage" },
+  { value: "business", label: "Business", description: "Company or professional site" },
   { value: "portfolio", label: "Portfolio", description: "Showcase creative work" },
-  { value: "blog", label: "Blog", description: "Writing and content publishing" },
-  { value: "magazine", label: "Magazine", description: "Editorial and news content" },
-  { value: "restaurant", label: "Restaurant", description: "Food, menus, and dining" },
+  { value: "blog", label: "Blog", description: "Writing and publishing" },
+  { value: "magazine", label: "Magazine", description: "Editorial and news" },
+  { value: "restaurant", label: "Restaurant", description: "Food, menus, dining" },
 ];
 
 interface UseCaseStepProps {
@@ -22,14 +22,14 @@ export default function UseCaseStep({ value, onChange }: UseCaseStepProps) {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-2">
-        What type of site is this?
+      <h2 className="text-2xl font-semibold text-text-primary mb-1">
+        What type of site?
       </h2>
-      <p className="text-gray-500 mb-6">
-        Choose a category or describe your own.
+      <p className="text-base text-text-secondary mb-6">
+        Pick one or type your own.
       </p>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
         {USE_CASES.map((uc) => (
           <SelectableCard
             key={uc.value}
@@ -44,23 +44,18 @@ export default function UseCaseStep({ value, onChange }: UseCaseStepProps) {
         ))}
       </div>
 
-      <div className="mt-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Or type your own
-        </label>
-        <input
-          type="text"
-          value={isCustom ? value : ""}
-          onChange={(e) => {
-            setIsCustom(true);
-            onChange(e.target.value);
-          }}
-          onFocus={() => setIsCustom(true)}
-          placeholder="e.g., dog grooming salon"
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          maxLength={100}
-        />
-      </div>
+      <input
+        type="text"
+        value={isCustom ? value : ""}
+        onChange={(e) => {
+          setIsCustom(true);
+          onChange(e.target.value);
+        }}
+        onFocus={() => setIsCustom(true)}
+        placeholder="Or type something else..."
+        className="w-full px-4 py-3 text-base bg-transparent border-b border-border-subtle text-text-primary placeholder-text-muted focus:border-accent focus:outline-none transition-colors"
+        maxLength={100}
+      />
     </div>
   );
 }

@@ -74,16 +74,18 @@ export default function Wizard({ onSubmit }: WizardProps) {
     <div className="max-w-2xl mx-auto">
       <ProgressBar currentIndex={wizard.stepIndex} />
 
-      <div className="min-h-[320px]">{renderStep()}</div>
+      <div className="min-h-[380px] animate-fade-in" key={wizard.currentStep}>
+        {renderStep()}
+      </div>
 
-      <div className="flex justify-between mt-8">
+      <div className="flex justify-between items-center mt-10">
         {!wizard.isFirstStep ? (
           <button
             type="button"
             onClick={wizard.goBack}
-            className="px-6 py-2.5 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer"
+            className="px-6 py-3 text-base text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
           >
-            Back
+            &larr; Back
           </button>
         ) : (
           <div />
@@ -93,18 +95,20 @@ export default function Wizard({ onSubmit }: WizardProps) {
           <button
             type="button"
             onClick={handleSubmit}
-            className="px-6 py-2.5 text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors font-medium cursor-pointer"
+            className="group px-10 py-3.5 text-base text-white bg-accent hover:bg-accent-hover rounded-xl transition-all font-medium cursor-pointer shadow-lg shadow-accent/20 hover:shadow-xl hover:shadow-accent/30 hover:scale-[1.02] active:scale-[0.98]"
           >
             Generate Theme
+            <span className="inline-block ml-2 transition-transform group-hover:translate-x-1">&rarr;</span>
           </button>
         ) : (
           <button
             type="button"
             onClick={wizard.goNext}
             disabled={!wizard.canProceed()}
-            className="px-6 py-2.5 text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            className="group px-10 py-3.5 text-base text-white bg-accent hover:bg-accent-hover rounded-xl transition-all font-medium disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:scale-100 cursor-pointer shadow-lg shadow-accent/20 hover:shadow-xl hover:shadow-accent/30 hover:scale-[1.02] active:scale-[0.98]"
           >
             Next
+            <span className="inline-block ml-2 transition-transform group-hover:translate-x-1">&rarr;</span>
           </button>
         )}
       </div>

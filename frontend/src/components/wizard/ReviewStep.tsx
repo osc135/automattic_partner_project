@@ -5,31 +5,33 @@ interface ReviewStepProps {
   onEdit: (step: number) => void;
 }
 
-function ReviewRow({
+function Row({
   label,
   value,
-  stepIndex,
+  step,
   onEdit,
 }: {
   label: string;
   value: string | null;
-  stepIndex: number;
-  onEdit: (step: number) => void;
+  step: number;
+  onEdit: (s: number) => void;
 }) {
   return (
-    <div className="flex items-start justify-between py-3 border-b border-gray-100 last:border-0">
-      <div className="flex-1">
-        <div className="text-sm font-medium text-gray-500">{label}</div>
-        <div className="mt-0.5 text-gray-900">
-          {value || <span className="text-gray-400 italic">Not specified</span>}
+    <div className="flex items-start justify-between py-4 border-b border-border-subtle last:border-0">
+      <div className="flex-1 min-w-0">
+        <div className="text-xs uppercase tracking-wider text-text-muted mb-1">
+          {label}
+        </div>
+        <div className="text-base text-text-primary">
+          {value || <span className="text-text-muted italic">—</span>}
         </div>
       </div>
       <button
         type="button"
-        onClick={() => onEdit(stepIndex)}
-        className="ml-4 text-sm text-indigo-600 hover:text-indigo-800 cursor-pointer"
+        onClick={() => onEdit(step)}
+        className="ml-4 text-sm text-text-muted hover:text-accent transition-colors cursor-pointer"
       >
-        Edit
+        edit
       </button>
     </div>
   );
@@ -38,50 +40,20 @@ function ReviewRow({
 export default function ReviewStep({ brief, onEdit }: ReviewStepProps) {
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-2">
-        Review your brief
+      <h2 className="text-2xl font-semibold text-text-primary mb-1">
+        Review
       </h2>
-      <p className="text-gray-500 mb-6">
-        Confirm everything looks right before generating your theme.
+      <p className="text-base text-text-secondary mb-6">
+        Confirm before generating.
       </p>
 
-      <div className="bg-white rounded-lg border border-gray-200 p-4 divide-y divide-gray-100">
-        <ReviewRow
-          label="Use Case"
-          value={brief.use_case}
-          stepIndex={0}
-          onEdit={onEdit}
-        />
-        <ReviewRow
-          label="Description"
-          value={brief.description}
-          stepIndex={1}
-          onEdit={onEdit}
-        />
-        <ReviewRow
-          label="Color Preference"
-          value={brief.color_preference}
-          stepIndex={2}
-          onEdit={onEdit}
-        />
-        <ReviewRow
-          label="Typography"
-          value={brief.typography_preference}
-          stepIndex={3}
-          onEdit={onEdit}
-        />
-        <ReviewRow
-          label="Layout"
-          value={brief.layout_preference}
-          stepIndex={4}
-          onEdit={onEdit}
-        />
-        <ReviewRow
-          label="Notes"
-          value={brief.notes}
-          stepIndex={5}
-          onEdit={onEdit}
-        />
+      <div className="bg-surface-raised rounded-lg px-5 py-2">
+        <Row label="Use Case" value={brief.use_case} step={0} onEdit={onEdit} />
+        <Row label="Description" value={brief.description} step={1} onEdit={onEdit} />
+        <Row label="Colors" value={brief.color_preference} step={2} onEdit={onEdit} />
+        <Row label="Typography" value={brief.typography_preference} step={3} onEdit={onEdit} />
+        <Row label="Layout" value={brief.layout_preference} step={4} onEdit={onEdit} />
+        <Row label="Notes" value={brief.notes} step={5} onEdit={onEdit} />
       </div>
     </div>
   );

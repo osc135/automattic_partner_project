@@ -5,28 +5,25 @@ interface DescriptionStepProps {
 
 const MAX_LENGTH = 500;
 
-export default function DescriptionStep({
-  value,
-  onChange,
-}: DescriptionStepProps) {
+export default function DescriptionStep({ value, onChange }: DescriptionStepProps) {
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-2">
+      <h2 className="text-2xl font-semibold text-text-primary mb-1">
         Describe your site
       </h2>
-      <p className="text-gray-500 mb-6">
-        What vibe, tone, or feel are you going for? Be as specific as you like.
+      <p className="text-base text-text-secondary mb-6">
+        Vibe, tone, feel — be as specific as you want.
       </p>
 
       <textarea
         value={value}
         onChange={(e) => onChange(e.target.value.slice(0, MAX_LENGTH))}
-        placeholder="e.g., A dark mode blog for photographers with a large, centered hero section and a moody, cinematic feel. Think high contrast blacks and deep blues."
+        placeholder="A dark mode blog for photographers with a moody, cinematic feel..."
         rows={5}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+        className="w-full px-4 py-3 text-base bg-surface-raised border border-border-subtle rounded-lg text-text-primary placeholder-text-muted focus:border-accent focus:outline-none transition-colors resize-none"
         maxLength={MAX_LENGTH}
       />
-      <div className="mt-1 text-sm text-gray-400 text-right">
+      <div className="mt-2 text-xs text-text-muted text-right">
         {value.length}/{MAX_LENGTH}
       </div>
     </div>

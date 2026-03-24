@@ -2,31 +2,11 @@ import { useState } from "react";
 import SelectableCard from "./SelectableCard";
 
 const TYPOGRAPHY_OPTIONS = [
-  {
-    value: "modern sans-serif",
-    label: "Modern Sans-Serif",
-    description: "Clean, contemporary, and minimal",
-  },
-  {
-    value: "classic serif",
-    label: "Classic Serif",
-    description: "Timeless, elegant, and authoritative",
-  },
-  {
-    value: "editorial",
-    label: "Editorial",
-    description: "Magazine-style with strong typographic hierarchy",
-  },
-  {
-    value: "playful",
-    label: "Playful",
-    description: "Friendly, rounded, and approachable",
-  },
-  {
-    value: "minimal",
-    label: "Minimal",
-    description: "Restrained, quiet, and functional",
-  },
+  { value: "modern sans-serif", label: "Sans-Serif", description: "Clean and contemporary" },
+  { value: "classic serif", label: "Serif", description: "Elegant and timeless" },
+  { value: "editorial", label: "Editorial", description: "Strong hierarchy" },
+  { value: "playful", label: "Playful", description: "Friendly and rounded" },
+  { value: "minimal", label: "Minimal", description: "Quiet and functional" },
 ];
 
 interface TypographyStepProps {
@@ -34,24 +14,21 @@ interface TypographyStepProps {
   onChange: (value: string) => void;
 }
 
-export default function TypographyStep({
-  value,
-  onChange,
-}: TypographyStepProps) {
+export default function TypographyStep({ value, onChange }: TypographyStepProps) {
   const [isCustom, setIsCustom] = useState(
     value !== "" && !TYPOGRAPHY_OPTIONS.some((o) => o.value === value)
   );
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-2">
-        Typography style
+      <h2 className="text-2xl font-semibold text-text-primary mb-1">
+        Typography
       </h2>
-      <p className="text-gray-500 mb-6">
-        What kind of type treatment suits your site?
+      <p className="text-base text-text-secondary mb-6">
+        What type style fits your site?
       </p>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
         {TYPOGRAPHY_OPTIONS.map((option) => (
           <SelectableCard
             key={option.value}
@@ -66,23 +43,18 @@ export default function TypographyStep({
         ))}
       </div>
 
-      <div className="mt-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Or describe your typography direction
-        </label>
-        <input
-          type="text"
-          value={isCustom ? value : ""}
-          onChange={(e) => {
-            setIsCustom(true);
-            onChange(e.target.value);
-          }}
-          onFocus={() => setIsCustom(true)}
-          placeholder="e.g., monospace with a technical feel"
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          maxLength={100}
-        />
-      </div>
+      <input
+        type="text"
+        value={isCustom ? value : ""}
+        onChange={(e) => {
+          setIsCustom(true);
+          onChange(e.target.value);
+        }}
+        onFocus={() => setIsCustom(true)}
+        placeholder="Or describe: monospace, technical, handwritten..."
+        className="w-full px-4 py-3 text-base bg-transparent border-b border-border-subtle text-text-primary placeholder-text-muted focus:border-accent focus:outline-none transition-colors"
+        maxLength={100}
+      />
     </div>
   );
 }
