@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.ai_provider import get_ai_provider
+from app.color_extractor import extract_palette
 from app.grader import grade_theme
 from app.models import ThemeBrief, ThemeGenerationError
 from app.packager import package_theme
@@ -30,6 +31,19 @@ app.add_middleware(
 @app.get("/api/health")
 def health_check():
     return {"status": "ok"}
+
+
+@app.post("/api/extract-palette")
+def extract_palette_endpoint(body: dict):
+    """Extract a color palette from a description."""
+    description = body.get("description", "")
+    if not description.strip():
+        return {"palette": None}
+
+    logger.info("🎨 Extracting palette from description...")
+    palette = extract_palette(description)
+    logger.info("🎨 Palette result: %s", palette)
+    return {"palette": palette}
 
 
 @app.post("/api/generate")

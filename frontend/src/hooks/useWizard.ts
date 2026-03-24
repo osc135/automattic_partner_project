@@ -11,9 +11,17 @@ const INITIAL_BRIEF: ThemeBrief = {
   notes: null,
 };
 
+export interface SuggestedPalette {
+  colors: string[];
+  name: string;
+  description: string;
+}
+
 export function useWizard() {
   const [stepIndex, setStepIndex] = useState(0);
   const [brief, setBrief] = useState<ThemeBrief>({ ...INITIAL_BRIEF });
+  const [suggestedPalette, setSuggestedPalette] = useState<SuggestedPalette | null>(null);
+  const [extractingPalette, setExtractingPalette] = useState(false);
 
   const currentStep = WIZARD_STEPS[stepIndex];
   const isFirstStep = stepIndex === 0;
@@ -24,7 +32,7 @@ export function useWizard() {
       case "use_case":
         return brief.use_case.trim().length > 0;
       case "description":
-        return brief.description.trim().length > 0;
+        return brief.description.trim().length > 0 && !extractingPalette;
       case "color":
         return brief.color_preference.trim().length > 0;
       case "typography":
@@ -36,13 +44,42 @@ export function useWizard() {
       default:
         return false;
     }
-  }, [currentStep, brief]);
+  }, [currentStep, brief, extractingPalette]);
 
-  const goNext = useCallback(() => {
-    if (stepIndex < WIZARD_STEPS.length - 1) {
-      setStepIndex((i) => i + 1);
+  const goNext = useCallback(async () => {
+    if (stepIndex >= WIZARD_STEPS.length - 1) return;
+
+    const nextIndex = stepIndex + 1;
+    const nextStep = WIZARD_STEPS[nextIndex];
+
+    // Extract palette when moving to color step
+    if (nextStep === "color" && brief.description.trim()) {
+      setExtractingPalette(true);
+      try {
+        const res = await fetch("/api/extract-palette", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ description: brief.description }),
+        });
+        const data = await res.json();
+        if (data.palette) {
+          setSuggestedPalette(data.palette);
+          // Auto-select if no color chosen yet
+          if (brief.color_preference === "") {
+            setBrief((prev) => ({
+              ...prev,
+              color_preference: `#suggested:${JSON.stringify(data.palette)}`,
+            }));
+          }
+        }
+      } catch {
+        // Extraction failed — no big deal, user picks manually
+      }
+      setExtractingPalette(false);
     }
-  }, [stepIndex]);
+
+    setStepIndex(nextIndex);
+  }, [stepIndex, brief.description, brief.color_preference]);
 
   const goBack = useCallback(() => {
     if (stepIndex > 0) {
@@ -66,6 +103,7 @@ export function useWizard() {
   const reset = useCallback(() => {
     setStepIndex(0);
     setBrief({ ...INITIAL_BRIEF });
+    setSuggestedPalette(null);
   }, []);
 
   const generateSlug = useCallback((): string => {
@@ -93,5 +131,7 @@ export function useWizard() {
     updateBrief,
     reset,
     generateSlug,
+    suggestedPalette,
+    extractingPalette,
   };
 }

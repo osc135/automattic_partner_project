@@ -40,6 +40,7 @@ export default function Wizard({ onSubmit }: WizardProps) {
           <ColorStep
             value={wizard.brief.color_preference}
             onChange={(v) => wizard.updateBrief("color_preference", v)}
+            suggestedPalette={wizard.suggestedPalette}
           />
         );
       case "typography":
@@ -75,7 +76,14 @@ export default function Wizard({ onSubmit }: WizardProps) {
       <ProgressBar currentIndex={wizard.stepIndex} />
 
       <div className="min-h-[380px] animate-fade-in" key={wizard.currentStep}>
-        {renderStep()}
+        {wizard.extractingPalette ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="w-8 h-8 border-2 border-accent/30 border-t-accent rounded-full animate-spin mb-4" />
+            <p className="text-text-secondary">Analyzing your description for colors...</p>
+          </div>
+        ) : (
+          renderStep()
+        )}
       </div>
 
       <div className="flex justify-between items-center mt-10">
@@ -107,7 +115,7 @@ export default function Wizard({ onSubmit }: WizardProps) {
             disabled={!wizard.canProceed()}
             className="group px-10 py-3.5 text-base text-white bg-accent hover:bg-accent-hover rounded-xl transition-all font-medium disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:scale-100 cursor-pointer shadow-lg shadow-accent/20 hover:shadow-xl hover:shadow-accent/30 hover:scale-[1.02] active:scale-[0.98]"
           >
-            Next
+            {wizard.extractingPalette ? "Analyzing..." : "Next"}
             <span className="inline-block ml-2 transition-transform group-hover:translate-x-1">&rarr;</span>
           </button>
         )}

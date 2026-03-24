@@ -9,8 +9,8 @@ class ThemeBrief(BaseModel):
 
     use_case: str = Field(..., min_length=1, max_length=100)
     description: str = Field(..., min_length=1, max_length=500)
-    color_preference: str = Field(..., min_length=1, max_length=100)
-    typography_preference: str = Field(..., min_length=1, max_length=100)
+    color_preference: str = Field(..., min_length=1, max_length=1000)
+    typography_preference: str = Field(..., min_length=1, max_length=500)
     layout_preference: Optional[str] = Field(None, max_length=100)
     notes: Optional[str] = Field(None, max_length=300)
     theme_slug: Optional[str] = Field(None, max_length=60)

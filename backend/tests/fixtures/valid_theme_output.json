@@ -36,6 +36,54 @@
       }
     ]
   },
+  "cta": {
+    "heading": "See the world differently",
+    "subheading": "New prints and stories published weekly. Follow the journey.",
+    "button_text": "Browse the gallery"
+  },
+  "pull_quote": {
+    "quote": "Photography is the story I fail to put into words.",
+    "attribution": "Destin Sparks"
+  },
+  "stats": {
+    "items": [
+      {"number": "12", "label": "Countries"},
+      {"number": "200+", "label": "Published Photos"},
+      {"number": "5", "label": "Years Shooting"}
+    ]
+  },
+  "testimonial": {
+    "quote": "The prints arrived beautifully packaged. The long exposure of the Tokyo crossing is even more stunning in person.",
+    "author": "Sarah M.",
+    "context": "Print collector since 2021"
+  },
+  "bio": {
+    "name": "James Chen",
+    "location": "Portland, Oregon",
+    "statement": "I photograph the moments between moments — the light that disappears in a breath, the expression that lasts half a second. My camera is how I pay attention."
+  },
+  "about_page": {
+    "heading": "Behind the lens",
+    "paragraphs": [
+      "I'm a photographer based in Portland, drawn to the moments most people walk past — the way light falls across a wet street, the shadows in a crowded market, the stillness of an empty room at dusk.",
+      "My work spans street photography, long exposure, and portraiture. I shoot primarily on location, working with available light whenever possible.",
+      "If you're interested in prints, editorial assignments, or just want to say hello — I'd love to hear from you."
+    ]
+  },
+  "sample_post": {
+    "title": "Thirty seconds on a rooftop in Tokyo",
+    "date": "March 15, 2024",
+    "excerpt": "A long exposure experiment above the Shibuya crossing, where patience meets chaos.",
+    "paragraphs": [
+      "I set up the tripod at 11pm, when the foot traffic below was at its densest. The goal was simple: capture the tension between the stillness of the buildings and the blur of human movement.",
+      "What I didn't expect was the way the neon reflections would streak across the frame, creating ribbons of color that felt almost painted.",
+      "Sometimes the best shots come from the moments you didn't plan for."
+    ]
+  },
+  "four_oh_four": {
+    "heading": "Nothing to see here — just darkness",
+    "message": "The page you're looking for has vanished into the shadows. Head back to the gallery and find something worth looking at."
+  },
   "footer": {
     "tagline": "Documenting the world through a dark lens since 2019.",
     "columns": [

@@ -50,14 +50,22 @@ const COLOR_KEYS = [
   { key: "background", label: "Background" },
 ] as const;
 
+interface SuggestedPalette {
+  colors: string[];
+  name: string;
+  description: string;
+}
+
 interface ColorStepProps {
   value: string;
   onChange: (value: string) => void;
+  suggestedPalette?: SuggestedPalette | null;
 }
 
-export default function ColorStep({ value, onChange }: ColorStepProps) {
+export default function ColorStep({ value, onChange, suggestedPalette }: ColorStepProps) {
   const isCustom = value.startsWith("#custom:");
-  const isPalette = !isCustom && PALETTES.some((p) => p.name === value);
+  const isSuggested = value.startsWith("#suggested:");
+  const matchedPalette = !isCustom && !isSuggested ? PALETTES.find((p) => p.name === value) : null;
 
   const [mode, setMode] = useState<"palette" | "custom">(
     isCustom ? "custom" : "palette"
@@ -122,13 +130,48 @@ export default function ColorStep({ value, onChange }: ColorStepProps) {
 
       {mode === "palette" && (
         <div className="grid grid-cols-2 gap-3">
+          {/* AI-suggested palette from description */}
+          {suggestedPalette && (
+            <button
+              type="button"
+              onClick={() => onChange(`#suggested:${JSON.stringify(suggestedPalette)}`)}
+              className={`col-span-2 flex items-start gap-4 px-5 py-5 rounded-xl text-left transition-all cursor-pointer border ${
+                isSuggested
+                  ? "bg-surface-selected border-accent scale-[1.01]"
+                  : "bg-surface-raised border-border-subtle hover:bg-surface-hover hover:border-border-active/30"
+              }`}
+            >
+              <div className="flex gap-1.5 flex-shrink-0 pt-0.5">
+                {suggestedPalette.colors.map((color, i) => (
+                  <div
+                    key={i}
+                    className="w-7 h-7 rounded-full border border-white/10"
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className={`text-sm font-semibold ${isSuggested ? "text-accent" : "text-text-primary"}`}>
+                    {suggestedPalette.name}
+                  </span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-accent/15 text-accent font-medium">
+                    From your description
+                  </span>
+                </div>
+                <div className="text-xs text-text-secondary mt-0.5">
+                  {suggestedPalette.description}
+                </div>
+              </div>
+            </button>
+          )}
           {PALETTES.map((palette) => (
             <button
               key={palette.name}
               type="button"
               onClick={() => onChange(palette.name)}
               className={`flex items-start gap-3 px-4 py-4 rounded-xl text-left transition-all cursor-pointer border ${
-                isPalette && value === palette.name
+                matchedPalette?.name === palette.name
                   ? "bg-surface-selected border-border-active scale-[1.01]"
                   : "bg-surface-raised border-border-subtle hover:bg-surface-hover hover:border-border-active/30"
               }`}
@@ -143,8 +186,15 @@ export default function ColorStep({ value, onChange }: ColorStepProps) {
                 ))}
               </div>
               <div className="min-w-0">
-                <div className={`text-sm font-semibold ${isPalette && value === palette.name ? "text-accent" : "text-text-primary"}`}>
-                  {palette.name}
+                <div className="flex items-center gap-2">
+                  <span className={`text-sm font-semibold ${matchedPalette?.name === palette.name ? "text-accent" : "text-text-primary"}`}>
+                    {palette.name}
+                  </span>
+                  {matchedPalette?.name === palette.name && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-accent/15 text-accent font-medium">
+                      Suggested
+                    </span>
+                  )}
                 </div>
                 <div className="text-xs text-text-secondary mt-0.5">
                   {palette.description}

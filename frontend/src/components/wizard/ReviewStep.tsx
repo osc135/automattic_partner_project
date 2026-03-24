@@ -42,6 +42,28 @@ function Row({
 }
 
 function ColorDisplay({ value }: { value: string }) {
+  if (value.startsWith("#suggested:")) {
+    try {
+      const palette = JSON.parse(value.replace("#suggested:", ""));
+      return (
+        <div className="flex items-center gap-3">
+          <span className="text-base text-text-primary">{palette.name}</span>
+          <div className="flex gap-1.5">
+            {(palette.colors as string[]).map((color, i) => (
+              <div
+                key={i}
+                className="w-6 h-6 rounded-full border border-white/10"
+                style={{ backgroundColor: color }}
+              />
+            ))}
+          </div>
+          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-accent/15 text-accent font-medium">AI</span>
+        </div>
+      );
+    } catch {
+      return <span className="text-base text-text-primary">{value}</span>;
+    }
+  }
   if (value.startsWith("#custom:")) {
     try {
       const colors = JSON.parse(value.replace("#custom:", ""));
