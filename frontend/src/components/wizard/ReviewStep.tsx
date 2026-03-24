@@ -67,6 +67,30 @@ function ColorDisplay({ value }: { value: string }) {
   return <span className="text-base text-text-primary">{value}</span>;
 }
 
+function TypographyDisplay({ value }: { value: string }) {
+  try {
+    const parsed = JSON.parse(value);
+    if (parsed.heading && parsed.body) {
+      const label = parsed.heading === parsed.body
+        ? parsed.heading
+        : `${parsed.heading} + ${parsed.body}`;
+      return (
+        <div className="flex items-baseline gap-3">
+          <span
+            className="text-base text-text-primary font-bold"
+            style={{ fontFamily: `'${parsed.heading}', system-ui, sans-serif` }}
+          >
+            {label}
+          </span>
+        </div>
+      );
+    }
+  } catch {
+    // not JSON
+  }
+  return <span className="text-base text-text-primary">{value}</span>;
+}
+
 export default function ReviewStep({ brief, onEdit }: ReviewStepProps) {
   return (
     <div>
@@ -83,7 +107,9 @@ export default function ReviewStep({ brief, onEdit }: ReviewStepProps) {
         <Row label="Colors" step={2} onEdit={onEdit}>
           <ColorDisplay value={brief.color_preference} />
         </Row>
-        <Row label="Typography" value={brief.typography_preference} step={3} onEdit={onEdit} />
+        <Row label="Typography" step={3} onEdit={onEdit}>
+          <TypographyDisplay value={brief.typography_preference} />
+        </Row>
         <Row label="Layout" value={brief.layout_preference} step={4} onEdit={onEdit} />
         <Row label="Notes" value={brief.notes} step={5} onEdit={onEdit} />
       </div>

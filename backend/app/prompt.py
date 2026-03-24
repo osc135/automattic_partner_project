@@ -89,9 +89,10 @@ COLORS:
 - Sections must visually contrast — the hero, features, and footer should each have a distinct feel.
 
 FONTS:
-- Pick from ONLY: Montserrat, Schibsted Grotesk, Karla, DM Sans, Open Sans.
-- Heading and body can be the same font (use weight contrast) or different.
-- Return just the font name.
+- The user's typography_preference may be a JSON object like {"heading":"Montserrat","body":"DM Sans"} specifying exact fonts, OR a simple label like "modern sans-serif".
+- If a JSON pairing is provided, use those exact font names in your response.
+- If a label is provided, pick appropriate fonts from ONLY: Montserrat, Schibsted Grotesk, Karla, DM Sans, Open Sans.
+- Return just the font name in the "fonts" object (e.g. "Montserrat", not a full font stack).
 
 COPY — CRITICAL:
 - NEVER use these phrases: "Welcome to", "Our Features", "About Us", "What We Do", "Get In Touch", "Learn More", "Lorem ipsum"
