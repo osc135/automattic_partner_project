@@ -1,9 +1,12 @@
 import base64
 import logging
+import os
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.ai_provider import get_ai_provider
 from app.color_extractor import extract_palette
@@ -20,9 +23,14 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="WordPress Theme Generator API")
 
+ALLOWED_ORIGINS = os.getenv(
+    "ALLOWED_ORIGINS",
+    "http://localhost:5173,http://localhost:5174",
+).split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -142,3 +150,9 @@ def generate_theme(brief: ThemeBrief):
         "filename": f"{theme_slug}.zip",
         "grade": grade,
     }
+
+
+# Serve frontend static files in production
+STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
+if STATIC_DIR.is_dir():
+    app.mount("/", StaticFiles(directory=str(STATIC_DIR), html=True), name="static")

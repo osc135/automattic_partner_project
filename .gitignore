@@ -8,6 +8,7 @@ venv/
 
 # Build output
 frontend/dist/
+backend/static/
 *.egg-info/
 
 # Environment
